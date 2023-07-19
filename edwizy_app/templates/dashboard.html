@@ -1,0 +1,280 @@
+<!-- index.html -->
+{% extends 'index.html' %}
+
+{% block title %}
+    Dashboard - Edwizy Bots
+{% endblock %}
+
+{% block content %}
+<div class="chart__section">
+    <div class="chart__graph">
+        <div class="chart__graph-header">
+            <div class="chart__graph-header__item" data-symbol="{{active_symbol}}" data-timeframe="{{active_time_frame}}" onclick="editChart()">
+                {{active_symbol}} | {{active_time_frame}}
+            </div>
+        </div>
+        <div class="chart__graph-container">
+            {% if active_chart == "" %}
+            <div class="add-chart_section-container">
+                <div class="add-chart__inner-container">
+                    <div class="add_chart-header">
+                        <h1>Choose historical chart of any of your tradable assets</h1>
+                    </div>
+                    <div class="add__chart-section">
+                        <div class="add__chart-container">
+                            <span id="" class="add-chart__title">Charts:</span>
+                            <span id="" class="add-chart__subtitle">
+                                <select id="symbol-select"  class="bot__container-item-subtitle">
+                                    {% for symbol in symbols %}
+                                    <option value="{{symbol}}"{% if symbol == active_symbol %}selected{% endif %} >{{symbol}}</option>
+                                    {% endfor %}
+                                </select>
+                            </span>
+                        </div>
+                        <div class="add__chart-container">
+                            <span id="" class="add-chart__title">Time Frame:</span>
+                            <span id="" class="add-chart__subtitle">
+                                <select id="timeframe-select" class="bot__container-item-subtitle">
+                                    {% for time in timeframe %}
+                                    <option value="{{time}}" {% if time == active_time_frame %}selected{% endif %}>{{time}}</option>
+                                    {% endfor %}
+                                </select>
+                            </span>
+                        </div>    
+                    </div>
+                    <div class="add_chart-button">
+                        <button id="add_chart-button" onclick="showChart(this)">Add Chart</button>
+                    </div>
+                </div>
+                
+            </div>
+            {% else %}
+            <div class="display__graph" id="display__graph">
+            </div>
+            <div class="no-data-found" id="no-data-found">
+                <h2>No Data Found, Make sure asset name is correct.</h2>
+            </div>
+            <div  id="edit__chart-section" class="edit__chart-section" style="display: none;">
+                <div class="add_chart-header">
+                    <h1>Choose historical chart of any of your tradable assets</h1>
+                </div>
+                <div class="add__chart-section">
+                    <div class="add__chart-container">
+                        <span id="" class="add-chart__title">Charts:</span>
+                        <span id="" class="add-chart__subtitle">
+                            <select id="symbol-select"  class="bot__container-item-subtitle">
+                                {% for symbol in symbols %}
+                                <option value="{{symbol}}"{% if symbol == active_symbol %}selected{% endif %} >{{symbol}}</option>
+                                {% endfor %}
+                            </select>
+                        </span>
+                    </div>
+                    <div class="add__chart-container">
+                        <span id="" class="add-chart__title">Time Frame:</span>
+                        <span id="" class="add-chart__subtitle">
+                            <select id="timeframe-select" class="bot__container-item-subtitle">
+                                {% for time in timeframe %}
+                                <option value="{{time}}" {% if time == active_time_frame %}selected{% endif %}>{{time}}</option>
+                                {% endfor %}
+                            </select>
+                        </span>
+                    </div>    
+                </div>
+                <div class="add_chart-button">
+                    <button id="add_chart-button" onclick="showChart(this)">Add Chart</button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+<script>
+    window.addEventListener("DOMContentLoaded", function() {
+        // Get the first chart item\
+       
+        var firstChartItem = document.querySelector(".chart__graph-header__item");
+        firstChartItem.classList.add("active")
+        
+        // Get the symbol and time frame from the first chart item
+        var symbol = firstChartItem.dataset.symbol;
+        var timeFrame = firstChartItem.dataset.timeframe;
+
+        console.log(symbol, timeFrame)
+        
+        // Call the showChart function with the symbol and time frame
+        showChart(firstChartItem);
+    });
+
+    function editChart() {
+        $("#display__graph").hide();
+        $("#no-data-found").hide();
+        $("#edit__chart-section").show();
+    }
+    
+    function showChart(element) {
+        var symbol = element.dataset.symbol;
+        var timeFrame = element.dataset.timeframe;
+
+
+        // Remove the active class from all chart headers
+        var chartHeaders = document.getElementsByClassName("chart__graph-header__item");
+        for (var i = 0; i < chartHeaders.length; i++) {
+            chartHeaders[i].classList.remove("active");
+        }
+
+        // Add the active class to the clicked chart header
+        element.classList.add("active");
+
+        document.getElementById("display__graph").innerHTML = "";
+
+        // Create a new chart/graph element
+        var chartGraph = document.createElement("div");
+        chartGraph.classList.add("chart__graph-content");
+
+        // Set the container id for the chart
+        var chartContainerId = "chart_" + symbol + "_" + timeFrame;
+        chartGraph.setAttribute("id", chartContainerId);
+
+        // Append the chart/graph element to the container
+        document.getElementById("display__graph").appendChild(chartGraph);
+
+        // Call the function to load data from the views.py file
+        loadData(symbol, timeFrame, chartContainerId);
+    }
+
+    function loadData(symbol, timeFrame, chartContainerId) {
+        // Create a new FormData object
+        var formData = new FormData();
+        formData.append('symbol', symbol);
+        formData.append('timeFrame', timeFrame);
+
+
+        // Send a fetch request to the views.py file
+        fetch('load_data', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(data => {
+            if (data != []) {
+                $("#no-data-found").hide()
+            }
+            console.log(data)
+            anychart.onDocumentReady(function () {
+                drawChart(data, chartContainerId, symbol, timeFrame);
+            });
+            
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+    }
+
+
+
+    function drawChart(data, chartContainerId, symbol, timeFrame) {
+        // Create a data table
+
+        var dataTable = anychart.data.table(0, 'MMM d, yyyy HH:mm:ss');
+        if ("1D" == timeFrame) {
+            var dataTable = anychart.data.table(0, 'MMM d, yyyy');
+        }
+       
+        // Add the loaded data to the data table
+        dataTable.addData(data);
+
+        // Map data
+        var mapping = dataTable.mapAs({
+            'open': 2,
+            'high': 3,
+            'low': 4,
+            'close': 1
+        });
+
+        // Set the chart type
+        var chart = anychart.stock();
+
+        // Set the series
+        var series = chart.plot(0).candlestick(mapping);
+        series.name(symbol); // Use the first value as the series name
+
+        // Set the chart title
+        chart.title(symbol + " | " + timeFrame + " Historical Trade Data");
+
+        var chartColor1 = getComputedStyle(document.documentElement).getPropertyValue('--chart-color1');
+        var chartColor2 = getComputedStyle(document.documentElement).getPropertyValue('--chart-color2');
+
+        // Use the chartColor variable in your code
+        chart.background().fill({
+            keys: [chartColor1, chartColor2],
+            angle: 180
+        });
+
+        // Set the container id
+        chart.container(chartContainerId);
+
+        // Draw the chart
+        chart.draw();
+    }
+</script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Handle click event on "Save settings" button
+
+        $("#add_chart-button").click(function() {
+            // Get the values of the inputs and selects
+            var symbol = $("#symbol-select").val();
+            var timeframe = $("#timeframe-select").val();
+
+            // Create a data object to send via AJAX
+            var data = {
+                'symbol': symbol,
+                'timeframe': timeframe,
+            };
+            console.log(data)
+    
+            // Send an AJAX request to your views.py file
+            $.ajax({
+                type: 'POST',
+                url: 'load_data',  // Replace with the actual URL of your view
+                data: data,
+                success: function(response) {
+                    // Handle the response from the server if needed
+                    console.log(response);
+                    location.reload()
+                    
+                },
+                error: function(xhr, textStatus, errorThrown) {
+                    // Handle any error that occurred during the AJAX request
+                    console.log(errorThrown);
+                }
+            });
+
+            
+        });
+    });
+</script>
+
+{% endblock %}
+
+{% block dashboard_active %}
+    active
+{% endblock %}
+
+
+{% block chart %}
+    chart
+{% endblock %} 
+
+{% block scripts %}
+    <script src="https://cdn.anychart.com/releases/8.7.1/js/anychart-core.min.js" type="text/javascript"></script>
+	<script src="https://cdn.anychart.com/releases/8.7.1/js/anychart-stock.min.js" type="text/javascript"></script>
+	<script src="https://cdn.anychart.com/releases/8.7.1/js/anychart-data-adapter.min.js" type="text/javascript"></script>
+{% endblock %} 
+
+{% block open_trades %}
+{{ open_trades_count }} 
+{% endblock %}

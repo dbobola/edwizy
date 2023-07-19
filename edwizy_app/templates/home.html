@@ -1,0 +1,127 @@
+{% block main-content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{% block title %}{% endblock %}</title>
+
+	<script>
+		// Check local storage
+		let localS = localStorage.getItem('theme'),
+			themeToSet = localS
+
+		// If local storage is not set, we check the OS preference
+		if (!localS) {
+			themeToSet = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+		}
+
+		// Set the correct theme
+		document.documentElement.setAttribute('data-theme', themeToSet)
+	</script>
+
+	<!-- Reset -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize@1.1.0/modern-normalize.min.css">
+
+	<!-- Google fonts -->
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;700&display=swap" rel="stylesheet">
+
+	<!-- Main stylesheet -->
+	<link rel="stylesheet" href="{% static 'css/home.css' %}">
+	
+	{% block scripts %}{% endblock %}
+
+</head>
+<body>
+    <section id="main">
+        <div class="overlay" id="overlay">
+            <div class="contact-content">
+                <h3 class="contact-title">Get in Touch</h3>
+                <form action="" class="contact-form">
+                  <div class="contact-form-div">
+                    <label for="" class="contact-form-tag">Names</label>
+                    <input
+                      type="text"
+                      placeholder="Insert your name"
+                      class="contact-form-input"
+                    />
+                  </div>
+                  <div class="contact-form-div">
+                    <label for="" class="contact-form-tag">Mail</label>
+                    <input
+                      type="email"
+                      placeholder="Insert your email"
+                      class="contact-form-input"
+                    />
+                  </div>
+                  <div class="contact-form-div contact-form-area">
+                    <label for="" class="contact-form-tag">Project</label>
+                    <textarea
+                      name=""
+                      id=""
+                      cols="30"
+                      rows="10"
+                      placeholder="How can we help you?"
+                      class="contact-form-input"
+                    ></textarea>
+                  </div>
+                  <button id="return">Cancel Message</button>
+                  <button id="contact-button">Send Message</button>
+                </form>
+            </div>
+        </div>
+        <div id="main-content__containers">
+           
+            <div id="hero" class="content__container">
+                <div class="hero__inner-container">
+                    <!-- Hero Content -->
+                    <div class="buttons">
+                        <button id="connect">Connect with Us</button>
+                        <button id="request-demo">Request Demo</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+	
+
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="{% static 'js/main.js' %}"></script>
+	<script>
+        $(document).ready(function() {
+            $("#connect").click(function() {
+                $("#overlay").addClass('active');
+            });
+
+            $("#request-demo").click(function() {
+                $("#overlay").addClass('active');
+            });
+
+            $("#contact-button").click(function(e) {
+                e.preventDefault();
+
+                var name = $(".contact-form-input[name='name']").val();
+                var email = $(".contact-form-input[name='email']").val();
+                var message = $(".contact-form-input[name='message']").val();
+
+                var subject = "Form Submission";
+                var body = "Name: " + name + "\nEmail: " + email + "\nMessage: " + message;
+
+                // Create a mailto link
+                var mailtoLink = "mailto:?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+
+                // Open the mailto link
+                window.location.href = mailtoLink;
+
+                // Reset the form
+                $(".contact-form-input").val('');
+            });
+        });
+    </script>
+</body>
+</html>
+{% endblock main-content %}

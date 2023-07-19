@@ -1,0 +1,10 @@
+asyncio
+boto3
+pydub
+requests
+pandas
+oandapyV20
+python-dateutil
+configparser
+oandapyV20
+

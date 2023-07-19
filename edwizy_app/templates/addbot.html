@@ -1,0 +1,314 @@
+<!-- index.html -->
+{% extends 'index.html' %}
+
+{% block title %}
+    Add New Bot - Edwizy Bots
+{% endblock %}
+
+{% block content %}
+    <div class="addbot__header">
+        <span><h1>All Tradable Assets</h1></span>
+        <span class="search__assets">
+            <input type="search" id="search_assets" placeholder="Browse available assets">
+        </span>        
+        <span><button id="add_new_bot">Add New Asset</button></span>
+    </div>
+   
+
+    <div class="bot__section">
+        {% if active_bots %}
+        {% for bots in active_bots %}
+        <div class="bot__container" data-bot-id="{{ bots.id }}">
+            <div class="bot__container__section">
+                <div class="bot__container-item">
+                    <span class="bot__container-item-title">Symbol</span>
+                    <span class="bot__container-item-subtitle" data-field="">{{bots.name}}</span>
+                </div>
+            
+                <div class="bot__container-item">
+                    <span class="bot__container-item-title">Status</span>
+                    {% if bots.active == True%}
+                    <span class="bot__container-item-subtitle"  style="color: green;" data-field="timeframe">ACTIVE</span>
+                    {% else %}
+                    <span class="bot__container-item-subtitle" style="color: red;" data-field="timeframe">PAUSED</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="bot__container-overlay-container">
+                <div class="bot__container-overlay">
+                    <div class="bot__container-overlay-section">
+                        <span class="bot__container-overlay-title">
+                            Total Trades
+                        </span>
+                        <span class="bot__container-overlay-subtitle">
+                            {{bots.total_trades}}
+                        </span>
+                    </div>
+                    <div class="bot__container-overlay-section">
+                        <span class="bot__container-overlay-title">
+                            Win Rate
+                        </span>
+                        <span class="bot__container-overlay-subtitle">
+                            {{bots.win_rate}}%
+                        </span>
+                    </div>
+                </div>
+                <div class="bot__container-overlay-btn">
+                    {% if bots.active == True%}
+                    <button class="pause_bot_btn" data-bot-id="{{ bots.id }}">Pause</button>
+                    {% else %}
+                    <button class="activate_bot_btn" data-bot-id="{{ bots.id }}">Activate</button>
+                    {% endif %}
+                    <button class="delete_bot_btn" data-bot-id="{{ bots.id }}">Delete</button>
+                </div>
+            </div> 
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty_bots-container">
+            <span class="empty_bots">Please Add Bots to symbol to begin trading.</span>
+        </div>
+        {%endif%}
+
+    </div>
+    <div class="bot__container-update" id="bot__container-update">
+        <div class="bot__container-update__container">
+            <h2 class="bot__container__section-header">Add New Asset to Trade</h2>
+            <div class="bot__container__update-section">
+                <div class="bot__container__section__symbol__details">
+                    <div class="section__symbol__details__item">
+                        <label for="" class="bot__container-item-title">Symbol</label>
+                        <input type="text" name="" id="symbol" class="bot__container-item-field">
+                    </div>
+                    <div class="section__symbol__details__item">
+                        <label for="" class="bot__container-item-title">Security ID</label>
+                        <input type="text" name="" id="security-id" class="bot__container-item-field">
+                    </div>
+                    <div class="section__symbol__details__item">
+                        <label for="" class="bot__container-item-title">Exchange Segement</label>
+                        <input type="text" name="" id="exchange-segment" class="bot__container-item-field">
+                    </div>
+                    <div class="section__symbol__details__item">
+                        <label for="" class="bot__container-item-title">Instrument Type</label>
+                        <input type="text" name="" id="instrument-type" class="bot__container-item-field">
+                    </div>
+                </div>
+            </div>
+            <div class="bot__container-update-btns">
+                <button id="discard_changes">Discard Changes</button>
+                <button id="add_to_chart_btn" class="add_to_chart_btn">Add to symbol</button>
+            </div>
+        </div>
+    </div>   
+
+        <!--- ======================== CUSTOM JS LINK========================== -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mixitup/3.3.1/mixitup.min.js" integrity="sha512-nKZDK+ztK6Ug+2B6DZx+QtgeyAmo9YThZob8O3xgjqhw2IVQdAITFasl/jqbyDwclMkLXFOZRiytnUrXk/PM6A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const pauseButtons = document.querySelectorAll('.pause_bot_btn');
+                const activateButtons = document.querySelectorAll('.activate_bot_btn');
+                const deleteButtons = document.querySelectorAll('.delete_bot_btn');
+                const addToChartBtn = document.getElementById('add_to_chart_btn');
+                const removeFromChartBtn = document.getElementById('remove_from_chart_btn');
+                const addBotBtn = document.getElementById('add_new_bot');
+                const discardChanges = document.getElementById('discard_changes'); 
+                const overlayUpdateBot = document.querySelector('.bot__container-update');
+                let selectedBotId = null;
+
+                pauseButtons.forEach((button) => {
+                        button.addEventListener('click', (event) => {
+                        selectedBotId = event.currentTarget.dataset.botId;
+                        console.log(selectedBotId)
+                        // Create an object with the updated values and botId
+                        const updatedData = {
+                            botId: selectedBotId,
+                        };
+
+                        console.log(updatedData)
+                        
+                        // Send the updated values to the Django backend using fetch
+                        fetch('pause_bot', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(updatedData)
+                        })
+                        .then(response => {
+                            // Handle the response from the Django backend
+                            if (response.ok) {
+                                // Success, do something
+                                const updateContainer = document.getElementById('bot__container-update');
+                                updateContainer.classList.remove('active');
+                                location.reload();
+                            } else {
+                                // Error, do something
+                            }
+                        })
+                        .catch(error => {
+                            // Handle any errors that occurred during the request
+                        });
+                    });
+                });
+
+                activateButtons.forEach((button) => {
+                        button.addEventListener('click', (event) => {
+                        selectedBotId = event.currentTarget.dataset.botId;
+                        console.log(selectedBotId)
+                        // Create an object with the updated values and botId
+                        const updatedData = {
+                            botId: selectedBotId,
+                        };
+
+                        console.log(updatedData)
+                        
+                        // Send the updated values to the Django backend using fetch
+                        fetch('activate_bot', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(updatedData)
+                        })
+                        .then(response => {
+                            // Handle the response from the Django backend
+                            if (response.ok) {
+                                // Success, do something
+                                const updateContainer = document.getElementById('bot__container-update');
+                                updateContainer.classList.remove('active');
+                                location.reload();
+                            } else {
+                                // Error, do something
+                            }
+                        })
+                        .catch(error => {
+                            // Handle any errors that occurred during the request
+                        });
+                    });
+                });
+
+                deleteButtons.forEach((button) => {
+                        button.addEventListener('click', (event) => {
+                        selectedBotId = event.currentTarget.dataset.botId;
+                        console.log(selectedBotId)
+                        // Create an object with the updated values and botId
+                        const updatedData = {
+                            botId: selectedBotId,
+                        };
+
+                        console.log(updatedData)
+                        
+                        // Send the updated values to the Django backend using fetch
+                        fetch('delete_bot', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(updatedData)
+                        })
+                        .then(response => {
+                            // Handle the response from the Django backend
+                            if (response.ok) {
+                                // Success, do something
+                                const updateContainer = document.getElementById('bot__container-update');
+                                updateContainer.classList.remove('active');
+                                location.reload();
+                            } else {
+                                // Error, do something
+                            }
+                        })
+                        .catch(error => {
+                            // Handle any errors that occurred during the request
+                        });
+                    });
+                });
+
+                addToChartBtn.addEventListener('click', () => {
+                    if (selectedBotId) {
+                        // Get the updated values
+                        const symbol = document.getElementById('symbol').value;
+                        const exchange_segment = document.getElementById('exchange-segment').value;
+                        const instrument_type = document.getElementById('instrument-type').value;
+                        const security_id = document.getElementById('security-id').value;
+        
+
+                        // Create an object with the updated values and botId
+                        const updatedData = {
+                            botId: selectedBotId,
+                            symbol,
+                            exchange_segment,
+                            instrument_type,
+                            security_id
+                        };
+
+                        console.log(updatedData)
+                        
+                        // Send the updated values to the Django backend using fetch
+                        fetch('update_bot', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(updatedData)
+                        })
+                        .then(response => {
+                            // Handle the response from the Django backend
+                            if (response.ok) {
+                                // Success, do something
+                                const updateContainer = document.getElementById('bot__container-update');
+                                updateContainer.classList.remove('active');
+                                location.reload();
+                            } else {
+                                // Error, do something
+                            }
+                        })
+                        .catch(error => {
+                            // Handle any errors that occurred during the request
+                        });
+                    }
+                });
+                
+                addBotBtn.addEventListener('click', function() {
+                    overlayUpdateBot.classList.add('active');
+                    selectedBotId = -1;
+                    console.log(selectedBotId)
+
+                });
+
+                discardChanges.addEventListener('click', function() {
+                    overlayUpdateBot.classList.remove('active');
+                    location.reload();
+                });
+                });
+
+        </script>
+        <script>
+            function filterAssets() {
+                var input = document.getElementById('search_assets');
+                var filter = input.value.toUpperCase();
+                var assets = document.getElementsByClassName('bot__container');
+        
+                for (var i = 0; i < assets.length; i++) {
+                    var symbol = assets[i].getElementsByClassName('bot__container-item-subtitle')[0];
+                    if (symbol.innerText.toUpperCase().indexOf(filter) > -1) {
+                        assets[i].style.display = '';
+                    } else {
+                        assets[i].style.display = 'none';
+                    }
+                }
+            }
+        
+            var searchInput = document.getElementById('search_assets');
+            searchInput.addEventListener('input', filterAssets);
+        </script>
+        
+
+{% endblock %}
+
+{% block addbot_active %}
+    active
+{% endblock %}
+
+{% block open_trades %}
+{{ open_trades_count }} 
+{% endblock %}

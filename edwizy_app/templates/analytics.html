@@ -1,0 +1,128 @@
+<!-- index.html -->
+{% extends 'index.html' %}
+
+{% block title %}
+    Analytics - Edwizy Bots
+{% endblock %}
+
+{% block content %}
+
+    <div class="analytics_page">
+        <div class="analytics__section">
+            <div class="analytics__container" id="analytics-account__container">
+                <div class="analytics">
+                    <span id="" class="analytics__title">Initial Deposit</span>
+                    <span id="" class="analytics__subtitle">${{profile.initial_deposit}}</span>
+                </div>
+                <div class="analytics">
+                    <span id="" class="analytics__title">Net Profit</span>
+                    <span id="" class="analytics__subtitle">${{profile.net_profit}}</span>
+                </div>
+                <div class="analytics">
+                    <span id="" class="analytics__title">Withdrawal</span>
+                    <span id="" class="analytics__subtitle">${{profile.withdrawal}}</span>
+                </div>
+                <div class="analytics">
+                    <span id="" class="analytics__title">Account Balance</span>
+                    <span id="" class="analytics__subtitle">${{profile.account_balance}}</span>
+                </div>
+            </div> 
+            <div class="analytics__container" id="analytics-trade__container">
+                <div class="analytics">
+                    <span id="" class="analytics__title">No of Profit Trades</span>
+                    <span id="" class="analytics__subtitle">{{profile.no_of_profit_trades}}</span>
+                </div>
+                <div class="analytics">
+                    <span id="" class="analytics__title">No of Loss Trades</span>
+                    <span id="" class="analytics__subtitle">{{profile.no_of_loss_trades}}</span>
+                </div>
+                <div class="analytics">
+                    <span id="" class="analytics__title">No. of Total Trades</span>
+                    <span id="" class="analytics__subtitle">{{profile.no_of_total_trades}}</span>
+                </div>
+                <div class="analytics">
+                    <span id="" class="analytics__title">Total Win Rate (%)</span>
+                    <span id="" class="analytics__subtitle">{{profile.total_win_rate}}%</span>
+                </div>
+            </div>    
+            <div class="analytics__container" id="analytics-positions__container">
+                <div class="analytics">
+                    <span id="" class="analytics__title">No of Short Positions</span>
+                    <span id="" class="analytics__subtitle">{{profile.no_of_short_positions}}</span>
+                </div>
+                <div class="analytics">
+                    <span id="" class="analytics__title">No of Long Positions</span>
+                    <span id="" class="analytics__subtitle">{{profile.no_of_long_positions}}</span>
+                </div>
+                <div class="analytics">
+                    <span id="" class="analytics__title">Short Positions(% won)</span> 
+                    <span id="" class="analytics__subtitle">{{profile.short_positions_won_perc}}%</span>
+                </div>
+                <div class="analytics">
+                    <span id="" class="analytics__title">Long Positions(% won)</span>
+                    <span id="" class="analytics__subtitle">{{profile.long_positions_won_perc}}%</span>
+                </div>
+            </div> 
+        </div>
+    
+        <div class="analytics__graph">
+            <div class="analytics__graph-container" id="analytics__graph-container">
+                
+            </div>
+        </div>
+    </div>
+  
+    <script>
+        fetch('calcprofit')
+            .then(response => response.json())
+            .then(data => {
+                
+                const result = data;
+                console.log(result);
+                // Process the result as needed
+                anychart.onDocumentReady(function () {
+                    // create data
+                    var data = result;
+                        
+                    // create a chart
+                    chart = anychart.line();
+                    chart.title("Profit Chart");
+
+                    // create a line series and set the data
+                    var series = chart.line(data);
+                    var chartColor1 = getComputedStyle(document.documentElement).getPropertyValue('--chart-color1');
+                    var chartColor2 = getComputedStyle(document.documentElement).getPropertyValue('--chart-color2');
+
+                    // Use the chartColor variable in your code
+                    chart.background().fill({
+                        keys: [chartColor1, chartColor2],
+                        angle: 180
+                    });
+
+                    // set the container id
+                    chart.container("analytics__graph-container");
+
+                    // initiate drawing the chart
+                    chart.draw();
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+        
+    </script>
+    
+{% endblock %}
+
+{% block analytics_active %}
+    active
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.anychart.com/releases/8.11.0/js/anychart-core.min.js"></script>
+<script src="https://cdn.anychart.com/releases/8.11.0/js/anychart-cartesian.min.js" type="text/javascript"></script>
+{% endblock %}
+{% block open_trades %}
+{{ open_trades_count }} 
+{% endblock %}

@@ -1,0 +1,196 @@
+<!-- index.html -->
+{% extends 'index.html' %}
+
+{% block title %}
+    Settings - Edwizy Bots
+{% endblock %}
+
+{% block content %}
+<div class="save__settings-container">
+    <button id="save_settings_btn" class="save__settings">Save settings</button>
+</div>
+
+
+<div class="profile">
+    <h1 class="profile__settings-header">Profile Settings</h1>
+   <div class="profile_settings_others">
+        <div class="profile_settings">
+            <span id="" class="profile__title">Username:</span>
+            <span id="" class="profile_subtitle">{{profile.name}}</span>
+        </div>
+        <div class="profile_settings">
+            <span id="" class="profile__title">Email:</span>
+            <span id="" class="profile_subtitle">{{profile.email}}</span>
+        </div>
+        
+        <div class="profile_settings">
+            <span id="" class="profile__title">API Key/Account ID:</span>
+            <span id="" class="profile_subtitle">
+                <input type="password"  id="api-key-input" value="{{api_key}}">
+            </span>
+        </div>
+        <div class="profile_settings">
+            <span id="" class="profile__title">Secret Key/Access Token:</span>
+            <span id="" class="profile_subtitle">
+                <input type="password" id="secret-key-input" value="{{secret_key}}">
+            </span>
+        </div>
+       
+                
+   </div>
+
+   <h1 class="profile__settings-header">Trade Settings</h1>
+   <div class="profile_settings_others">
+        <div class="profile_settings">
+            <span id="" class="profile__title">Broker:</span>
+            <span id="" class="profile_subtitle">
+                <select id="brokers-select" value={{user_broker}} class="bot__container-item-subtitle">
+                    <option value="none">-----</option>
+                    {% for broker in brokers %}
+                    <option value="{{broker}}" {% if broker == user_broker %}selected{% endif %}>{{broker}}</option>
+                    {% endfor %}
+                </select>
+            </span>
+        </div>
+        <div class="profile_settings">
+            <span id="" class="profile__max-trades">Maximum Concurrent Trades:</span>
+            <span id="" class="profile_subtitle">
+                <select id="max-trades-select"  class="bot__container-item-subtitle">
+                    <option value="none">-----</option>
+                    {% for max in max_trades %}
+                    <option value="{{max}}" {% if max == user_max_trade %}selected{% endif %}>{{max}}</option>
+                    {% endfor %}
+                </select>
+            </span>
+        </div>
+        <div class="profile_settings">
+            <span id="" class="profile__max-trades">Time Frame:</span>
+            <span id="" class="profile_subtitle">
+                <select id="timeframe-select" class="bot__container-item-subtitle">
+                    <option value="none">-----</option>
+                    {% for time in timeframe %}
+                    <option value="{{time}}" {% if time == user_time_frame %}selected{% endif %}>{{time}}</option>
+                    {% endfor %}
+                </select>
+            </span>
+        </div>
+        <div class="profile_settings">
+            <span id="" class="profile__active-strategies">Order Size:</span>
+            <span id="" class="profile_subtitle">
+                <select id="order-size-select" class="bot__container-item-subtitle">
+                    <option value="none">-----</option>
+                    {% for size in order_size %}
+                    <option value="{{ size }}" {% if size == user_order_size %}selected{% endif %}>{{ size }}</option>
+                    {% endfor %}
+                </select>
+            </span>
+        </div>
+        <div class="profile_settings">
+            <span id="" class="profile__active-strategies">Risk-Reward:</span>
+            <span id="" class="profile_subtitle">
+                    <select id="risk-reward-select" class="bot__container-item-subtitle">
+                        <option value="none">-----</option>
+                        {% for r_r in risk_reward %}
+                        <option value="{{r_r}}" {% if r_r == user_risk_reward %}selected{% endif %}>{{r_r}}</option>
+                        {% endfor %}
+                    </select>
+            </span>
+        </div>
+        <div class="profile_settings">
+            <span id="" class="profile__active-strategies">Order Type:</span>
+            <span id="" class="profile_subtitle">
+                <select id="order-type-select" class="bot__container-item-subtitle">
+                    <option value="none">-----</option>
+                    {% for type in order_type%}
+                    <option value="{{type}}" {% if type == user_order_type %}selected{% endif %}>{{type}}</option>
+                    {% endfor %}
+                </select>
+            </span>
+        </div> 
+   </div>
+   
+    <h1 class="profile__settings-header">Strategy Settings</h1>
+    <div class="profile__strategies-container" id="strategy-settings-container">
+        {% for strategy in strategies %}
+        <span id="" class="profile_strategies">
+            <label for="{{ strategy.name }}">{{ strategy.name }}</label>
+            <input type="checkbox" name="bot" value="{{ strategy.id }}" {% if strategy.name in selected_strategies %}checked{% endif %}>
+
+
+        </span>
+        {% endfor %}
+    </div>    
+    
+</div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Handle click event on "Save settings" button
+        $("#save_settings_btn").click(function() {
+            // Get the values of the inputs and selects
+            var apiKey = $("#api-key-input").val();
+            var secretKey = $("#secret-key-input").val();
+            var broker = $("#brokers-select").val();
+            var maxTrades = $("#max-trades-select").val();
+            var timeframe = $("#timeframe-select").val();
+            var orderSize = $("#order-size-select").val();
+            var riskReward = $("#risk-reward-select").val();
+            var orderType = $("#order-type-select").val();
+
+            // Create a data object to send via AJAX
+            var data = {
+                'api_key': apiKey,
+                'secret_key': secretKey,
+                'broker': broker,
+                'max_trades': maxTrades,
+                'timeframe': timeframe,
+                'order_size': orderSize,
+                'risk_reward': riskReward,
+                'order_type': orderType
+            };
+
+            // Retrieve the status of each strategy checkbox
+            var strategyStatus = {};
+            $('#strategy-settings-container input[type="checkbox"]').each(function() {
+                var strategyId = $(this).val();
+                var isChecked = $(this).is(':checked');
+                strategyStatus[strategyId] = isChecked;
+            });
+
+            // Add strategyStatus to the data object
+            data['strategyStatus'] = JSON.stringify(strategyStatus);
+
+            // Send an AJAX request to your views.py file
+            $.ajax({
+                type: 'POST',
+                url: 'save_settings',  // Replace with the actual URL of your view
+                data: data,
+                success: function(response) {
+                    // Handle the response from the server if needed
+                    console.log(response);
+                },
+                error: function(xhr, textStatus, errorThrown) {
+                    // Handle any error that occurred during the AJAX request
+                    console.log(errorThrown);
+                }
+            });
+        });
+    });
+</script>
+
+
+    
+
+  
+  
+{% endblock %}
+
+{% block settings_active %}
+    active
+{% endblock %}
+
+{% block open_trades %}
+{{ open_trades_count }} 
+{% endblock %}

@@ -1,0 +1,106 @@
+<!-- index.html -->
+{% extends 'index.html' %}
+
+{% block title %}
+    My Trades - Edwizy Bots
+{% endblock %}
+
+{% block content %}
+<div class="trade__section">
+    <div class="open__trades">
+        <h3>Open Trades ({{open_trades_count}})</h3>
+        <div class="trades__table__section">
+            <table id="trades-table__table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Symbol</th>
+                        <th>Time</th>
+                        <th>Type</th>
+                        <th>Size</th>
+                        <th>Price</th>
+                        <th>S/L</th>
+                        <th>T/P</th>
+                        <th>Bot</th>
+                        <th>Profit($)</th>
+                    </tr>
+                </thead>
+                {% if open_trades %}
+                <tbody>
+                    {% for trades in open_trades %}
+                    <tr>
+                        <td>{{trades.trade_id}}</td>
+                        <td>{{trades.symbol}}</td>
+                        <td>{{trades.time}}</td>
+                        <td>{{trades.order_type}}</td>
+                        <td>{{trades.order_size}}</td>
+                        <td>{{trades.price}}</td>
+                        <td>{{trades.stop_loss}}</td>
+                        <td>{{trades.take_profit}}</td>
+                        <td>{{trades.bot}}</td>
+                        <td>{{trades.profit}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                {% endif %}
+            </table>
+            {% if not open_trades %}
+            <p class="trade__description">No Open Trades</p>
+            {% endif %}
+        </div>
+       
+    </div>
+    <div class="recent__trades">
+        <h3>Recent Trades ({{closed_trades_count}})</h3>
+        <div class="trades__table__section">
+            <table id="trades-table__table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Symbol</th>
+                        <th>Time</th>
+                        <th>Type</th>
+                        <th>Size</th>
+                        <th>Price</th>
+                        <th>S/L</th>
+                        <th>T/P</th>
+                        <th>Bot</th>
+                        <th>Profit($)</th>
+                    </tr>
+                </thead>
+                {% if closed_trades %}
+                <tbody>
+                    {% for trades in closed_trades %}
+                    <tr>
+                        <td>{{trades.trade_id}}</td>
+                        <td>{{trades.symbol}}</td>
+                        <td>{{trades.time}}</td>
+                        <td>{{trades.order_type}}</td>
+                        <td>{{trades.order_size}}</td>
+                        <td>{{trades.price}}</td>
+                        <td>{{trades.stop_loss}}</td>
+                        <td>{{trades.take_profit}}</td>
+                        <td>{{trades.bot}}</td>
+                        <td>{{trades.profit}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                {% endif %}
+            </table>
+            {% if not closed_trades %}
+            <p class="trade__description">No Recent Trades</p>
+            {% endif %}
+        </div>
+       
+    </div>
+
+</div>
+{% endblock %}
+
+{% block trades_active %}
+    active
+{% endblock %}
+
+{% block open_trades %}
+{{ open_trades_count }} 
+{% endblock %}
